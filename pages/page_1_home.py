@@ -2,27 +2,20 @@ import random
 
 import arcade
 
+from config import WINDOW_W, WINDOW_H, IMAGE_TO_FIND_W, IMAGE_TO_FIND_H, GRID_W_CFG, GRID_H_CFG
 from core.utils.image import createImgSprite, getImagesAtPos
 from core.utils.text import *
 from core.utils.utils import Gfx
-
+from config import WORDS_CFG
 
 
 class Page1Home():
 
-    GRID_W    = 11
-    GRID_H    = 7
-    CHAR_SIZE = 125
+    GRID_W    = GRID_W_CFG
+    GRID_H    = GRID_H_CFG
+    CHAR_SIZE = int(min(WINDOW_W/GRID_W,WINDOW_H/GRID_H))
 
-    WORDS =[
-        ("ROMUALD", 0, 1, False),
-        ("GRIGNON", 0, 0, True),
-        ("NOEL", 0, 4, False),
-        ("LIT", 3, 4, True),
-        ("MUSE", 2, 1, True),
-        ("DIRECT", 6, 1, True),
-        ("ROYAL", 6, 3, False),
-    ]
+    WORDS = WORDS_CFG
 
     def __init__(self, w, h, window: arcade.Window, process=None):
         super().__init__()
@@ -62,7 +55,7 @@ class Page1Home():
             pos  = (l.center_x, l.center_y)
             x = (l.center_x - self.xRef)/self.CHAR_SIZE
             y = (self.yRef - l.center_y)/self.CHAR_SIZE
-            div = min(835//self.GRID_W, 549//self.GRID_H)
+            div = min(IMAGE_TO_FIND_W//self.GRID_W, IMAGE_TO_FIND_H//self.GRID_H)
             spbox = (self.GRID_W, self.GRID_H, div, div)
             img = createImgSprite(x + y * self.GRID_W, pos, size, spbox)
             self.all_images.append(img)
@@ -106,7 +99,7 @@ class Page1Home():
                     siblings  = getLettersAtPos(self.all_letters, (letter.center_x, letter.center_y))
                     res = 1
                     if len(siblings) > 1:
-                        letter.color = (255,255,255,128)
+                        letter.color = (255,0,0,255)
                         # Check if the 2 words for this letter are completely visible
                         # in this case we do not have to display the letter
                         adjacent = []
@@ -129,8 +122,28 @@ class Page1Home():
                                                  size, size,
                                                  (0,0,0,255))
                     if letter.dispSpr == 1:
-                        letter.color = (255,255,255,255)
+                        letter.color = (0,0,0,255)
                         letter.draw()
+            # always display Rows cols numbers
+            for w in self.WORDS:
+                label = w[4]
+                dy = int(w[3])
+                dx = int(not w[3])
+                pos = (self.xRef + (w[1]-dx) * self.CHAR_SIZE, self.yRef - (w[2]-dy) * self.CHAR_SIZE)
+                arcade.draw_text(label, pos[0], pos[1], (0,0,0,255),font_size=15, anchor_x='center', anchor_y='center', bold=True)
+                # draw arrow
+                if dx:
+                    # horizontal
+                    arcade.draw_triangle_filled(pos[0]+self.CHAR_SIZE/3, pos[1]+self.CHAR_SIZE/4,
+                                                pos[0]+self.CHAR_SIZE/3, pos[1]-self.CHAR_SIZE/4,
+                                                pos[0]+2*self.CHAR_SIZE/3, pos[1],
+                                                (0,0,0,255))
+                else:
+                    # vertical
+                    arcade.draw_triangle_filled(pos[0]-self.CHAR_SIZE/4, pos[1]-self.CHAR_SIZE/3,
+                                                pos[0]+self.CHAR_SIZE/4, pos[1]-self.CHAR_SIZE/3,
+                                                pos[0], pos[1]-2*self.CHAR_SIZE/3,
+                                                (0,0,0,255))
 
     def onMouseButtonEvent(self, x, y, buttonNum, isPressed):
         for letter in self.all_letters:
@@ -145,3 +158,8 @@ class Page1Home():
     def onKeyEvent(self, key, isPressed):
         if key == arcade.key.SPACE and isPressed:
             self.started = True
+        if key== arcade.key.BACKSPACE and isPressed:
+            for l in self.all_letters:
+                l.dispSpr = 2
+
+
